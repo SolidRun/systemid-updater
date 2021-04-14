@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 
-#define CCID_MAC_PORTS 8
+#define NXID_MAC_PORTS 18
 
 typedef struct __attribute__ ((__packed__)) {
 	uint8_t YY;
@@ -19,17 +19,21 @@ typedef struct __attribute__ ((__packed__)) {
 } systemid_bcd_date_t;
 
 typedef struct __attribute__ ((__packed__)) {
-	char tagid[4];
-	uint8_t major;
-	uint8_t minor;
-	char sn[10];
-	char errata[2];
-	systemid_bcd_date_t date;
-	uint8_t res_0[40];
-	uint8_t macsize;
-	uint8_t macflags;
-	uint8_t mac[CCID_MAC_PORTS][6];
-	uint32_t crc32;
+	unsigned char tagid[4]; // 00-03: literal “NXID”
+	unsigned char sn[12]; // 04-0F: serial number
+	unsigned char errata[5]; // 10-14: errata label
+	systemid_bcd_date_t date;; // 15-1A: build date/time
+	unsigned char res_0; // 1B : reserved
+	unsigned char version[4]; // 1C-1F: NXID structure version
+	unsigned char tempcal[8]; // 20-27: CPU temp. calibration factors
+	unsigned char tempcalsys[2]; // 28-29: Board temp. calibration factors
+	unsigned char tempcalflags; // 2A : Temp cal enable/qty/etc.
+	unsigned char res_1[21]; // 2B-3F: reserved
+	unsigned char macsize; // 40 : number of valid MAC addresses
+	unsigned char macflags; // 41 : MAC table flags
+	unsigned char mac[30][6]; // 42-F5: MAC addresses, array of 6-byte
+	unsigned char res_u[6]; // F6-FB: reserved
+	unsigned int crc32; // FC-FF: crc-32 checksum
 } systemid_t;
 
 #define EEPROM_SIZE sizeof(systemid_t)
@@ -40,7 +44,6 @@ uint8_t write_eeprom(systemid_t *e, const char *eeprom_path);
 void print_eeprom(systemid_t *e);
 uint8_t init_eeprom(systemid_t *e, const char *eeprom_path, uint8_t read_hw_mac);
 void check_eeprom(systemid_t *e);
-void write_hw_rev(systemid_t *e, char *hw_rev);
 void write_mac_address(uint8_t *emac, char *mac);
 
 #endif //SYSTEMID_UPDATER_EEPROM_H

@@ -36,7 +36,6 @@ void print_usage(char *prg)
 					" -i, --init            start with an empty EEPROM (will overwrite everything)\n"
 					" -w, --write           write eeprom to given file\n"
 					" -u, --update          update fields in the current EEPROM\n"
-					" -r, --hw_rev          hardware revision style: 'v<major>.<minor>.<errata>\n"
 					" -s  --sn              Serialnumber: 9 characters\n"
 					"     --hw_mac          read hw-mac-addr from read only eeprom\n",
 					prg);
@@ -55,8 +54,7 @@ int main(int argc, char **argv) {
 	uint8_t check = 0, verbose = 0, init = 0, update = 0, write = 0, hw_mac = 0;
 	int max_mac = 0;
 	char *eeprom_path = EEPROM;
-	char macs[CCID_MAC_PORTS][19] = {'\0'};
-	char hw_rev[10] = {'\0'};
+	char macs[NXID_MAC_PORTS][19] = {'\0'};
 	char sn[10] = {'\0'};
 	uint8_t exitcode = EXIT_SUCCESS;
 
@@ -68,7 +66,6 @@ int main(int argc, char **argv) {
 			{ "init",		no_argument,			0, 'i' },
 			{ "update",		no_argument,			0, 'u' },
 			{ "write",		no_argument,			0, 'w' },
-			{ "hw_rev",		required_argument,		0, 'r' },
 			{ "sn",			required_argument,		0, 's' },
 			{ "verbose",	no_argument,			0, 'v' },
 			{ "help",	    no_argument,			0, 'h' },
@@ -83,9 +80,7 @@ int main(int argc, char **argv) {
 			{ "mac8",		required_argument,		0, 0 },
 			{ 0,		0,			0, 0},
 	};
-	#if CCID_MAC_PORTS != 8
-	#error the long_options[] has to be adapted to the differnt defined CCID_MAC_PORTS value!
-	#endif
+
 	int option_index = 0;
 	while ((opt = getopt_long(argc, argv, "ciuwr:s:vh", long_options, &option_index)) != -1) {
 		switch (opt) {
@@ -97,7 +92,7 @@ int main(int argc, char **argv) {
 				/* if we one of the mac addresses are added, copy it*/
 				if (strncmp(long_options[option_index].name, "mac", 3) == 0) {
 					uint8_t i = (uint8_t) strtol(&long_options[option_index].name[3], NULL, 10);
-					if (i > 0 && i <= CCID_MAC_PORTS) {
+					if (i > 0 && i <= NXID_MAC_PORTS) {
 						//mac1-6 will be internal stored as mac0-5
 						strncpy(macs[i - 1], optarg, 19);
 						//bit 0-6 is used
@@ -132,10 +127,6 @@ int main(int argc, char **argv) {
 
 			case 'w':
 				write = 1;
-				break;
-
-			case 'r':
-				strncpy(hw_rev, optarg, 10);
 				break;
 
 			case 's':
@@ -181,14 +172,9 @@ int main(int argc, char **argv) {
 		strncpy(eeprom.sn, sn, 10);
 	}
 
-	// set hw_rev if given
-	if (hw_rev[0]) {
-		write_hw_rev(&eeprom, hw_rev);
-	}
-
 	// set mac addresses if given
 	if (max_mac) {
-		for (uint8_t i = 0; i < CCID_MAC_PORTS; i++) {
+		for (uint8_t i = 0; i < NXID_MAC_PORTS; i++) {
 			if(max_mac & (1<<i)){
 				write_mac_address(eeprom.mac[i], macs[i]);
 				if (eeprom.macsize < i+1) {

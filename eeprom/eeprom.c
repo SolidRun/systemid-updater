@@ -7,11 +7,12 @@
 #include <stdint.h>
 #include <time.h>
 #include <string.h>
+#include <arpa/inet.h>
 #include "eeprom.h"
 #include "crc.h"
 
 #define FIXED_MAC_OFFSET	0xFA
-#define TAG_ID_CCID 		"CCID"
+#define TAG_ID_NXID 		"NXID"
 
 uint8_t read_fixed_mac(uint8_t *mac, const char *eeprom_path) {
 	FILE *filehandle;
@@ -45,7 +46,7 @@ uint8_t read_eeprom(systemid_t *e, const char *eeprom_path) {
 	}
 
 	if(fread(e, EEPROM_SIZE, 1, filehandle) != 1) {
-		fprintf(stderr, "\nError while reading eeprom content from file\n");
+		fprintf(stderr, "\nError while reading eeprom content from file %d bytes\n", EEPROM_SIZE);
 		exitcode = EXIT_FAILURE;
 	}
 
@@ -98,7 +99,7 @@ void print_eeprom(systemid_t *e) {
 uint8_t init_eeprom(systemid_t *e, const char *eeprom_path, uint8_t read_hw_mac) {
 	uint8_t exitcode = EXIT_SUCCESS;
 	// set tag-id
-	memcpy(e->tagid, TAG_ID_CCID, 4);
+	memcpy(e->tagid, TAG_ID_NXID, 4);
 
 	// set current date as build date
 	time_t now = time(NULL);
@@ -117,6 +118,8 @@ uint8_t init_eeprom(systemid_t *e, const char *eeprom_path, uint8_t read_hw_mac)
 	} else {
 		exitcode = EXIT_FAILURE;
 	}
+
+	e->version[3] = 1;
 
 	//read fixed mac and set in systemid eeprom
 	if(exitcode == EXIT_SUCCESS && read_hw_mac) {
@@ -141,49 +144,21 @@ void check_eeprom(systemid_t *e) {
 	snprintf(value, 5, "%s", e->tagid);
 	fprintf(stdout, "TagID: %s\n", value);
 	if (e->errata[0] || e->errata[1]) {
-		fprintf(stdout, "hw_rev: v%d.%d.%c%c\n", e->major, e->minor,e->errata[0],e->errata[1]);
-	} else {
-		fprintf(stdout, "hw_rev: v%d.%d\n", e->major, e->minor);
+		fprintf(stdout, "errata: %c%c\n", e->errata[0],e->errata[1]);
 	}
 	fprintf(stdout, "serialnumber: %s\n", e->sn);
 	fprintf(stdout, "build date: %02X.%02X.20%02X %02X:%02X:%02X\n", e->date.DD, e->date.MM, e->date.YY, e->date.hh, e->date.mm, e->date.ss);
+	fprintf(stdout, "version: %X\n", e->version[3]);
 	fprintf(stdout, "mac flags: %02X\n", e->macflags);
-	for (uint8_t i = 0; i < CCID_MAC_PORTS && i < e->macsize; i++) {
+	for (uint8_t i = 0; i < NXID_MAC_PORTS && i < e->macsize; i++) {
 		fprintf(stdout, "mac%d: %02X:%02X:%02X:%02X:%02X:%02X\n", i+1, e->mac[i][0],e->mac[i][1],e->mac[i][2],e->mac[i][3],e->mac[i][4],e->mac[i][5]);
 	}
 	fprintf(stdout, "CRC: %08X\n", ntohl(e->crc32));
 }
 
-
-void write_hw_rev(systemid_t *e, char *hw_rev) {
-	//get major number:
-	char *tok = strtok(hw_rev, "v.");
-	if (tok != NULL) {
-		printf("major: %s\n", tok);
-		uint8_t num = (uint8_t) strtol(tok, NULL, 10);
-		e->major = num;
-
-		//get minor number:
-		tok = strtok(NULL, "v.");
-		if (tok != NULL) {
-			printf("minor: %s\n", tok);
-			num = (uint8_t) strtol(tok, NULL, 10);
-			e->minor = num;
-
-			//get errata:
-			tok = strtok(NULL, "v.");
-			if (tok != NULL) {
-				printf("errata: %s\n", tok);
-				strncpy(e->errata,tok,2);
-			}
-		}
-	}
-}
-
-
 void write_mac_address(uint8_t *emac, char *mac) {
 	char *tok = strtok(mac, ":");
-	for (uint8_t i = 0; i < CCID_MAC_PORTS && tok != NULL; i++) {
+	for (uint8_t i = 0; i < NXID_MAC_PORTS && tok != NULL; i++) {
 		uint8_t block = (uint8_t) strtol(tok, NULL, 16);
 		emac[i] = block;
 		tok = strtok(NULL, ":");
