@@ -37,11 +37,9 @@ void print_usage(char *prg)
 					" -w, --write           write eeprom to given file\n"
 					" -u, --update          update fields in the current EEPROM\n"
 					" -s  --sn              Serialnumber: 9 characters\n"
-					"     --hw_mac          read hw-mac-addr from read only eeprom\n",
+					" -m  --mac             read hw-mac-addr from read only eeprom\n"
+					" -a  --addr            read hw-mac-addr from read only eeprom\n",
 					prg);
-	for (uint8_t i = 1; i <= CCID_MAC_PORTS; i++) {
-		fprintf(stderr, "     --mac%d=mac-addr   %d. mac-addr to write to eeprom\n",i, i);
-	}
 	fprintf(stderr, " -v, --verbose         be verbose\n"
 					" -h  --help            this help\n"
 					);
@@ -51,8 +49,8 @@ void print_usage(char *prg)
 
 int main(int argc, char **argv) {
 	int opt;
-	uint8_t check = 0, verbose = 0, init = 0, update = 0, write = 0, hw_mac = 0;
-	int max_mac = 0;
+	uint8_t check = 0, verbose = 0, init = 0, update = 0, write = 0;
+	int mac = 0, max_mac = 0;
 	char *eeprom_path = EEPROM;
 	char macs[NXID_MAC_PORTS][19] = {'\0'};
 	char sn[10] = {'\0'};
@@ -67,46 +65,24 @@ int main(int argc, char **argv) {
 			{ "update",		no_argument,			0, 'u' },
 			{ "write",		no_argument,			0, 'w' },
 			{ "sn",			required_argument,		0, 's' },
-			{ "verbose",	no_argument,			0, 'v' },
-			{ "help",	    no_argument,			0, 'h' },
-			{ "hw_mac",		no_argument,			0, 1 },
-			{ "mac1",		required_argument,		0, 0 },
-			{ "mac2",		required_argument,		0, 0 },
-			{ "mac3",		required_argument,		0, 0 },
-			{ "mac4",		required_argument,		0, 0 },
-			{ "mac5",		required_argument,		0, 0 },
-			{ "mac6",		required_argument,		0, 0 },
-			{ "mac7",		required_argument,		0, 0 },
-			{ "mac8",		required_argument,		0, 0 },
+			{ "mac",		optional_argument,		0, 'm' },
+			{ "addr",		required_argument,		0, 'a' },
+			{ "verbose",		no_argument,			0, 'v' },
+			{ "help",		no_argument,			0, 'h' },
 			{ 0,		0,			0, 0},
 	};
 
 	int option_index = 0;
-	while ((opt = getopt_long(argc, argv, "ciuwr:s:vh", long_options, &option_index)) != -1) {
+	while ((opt = getopt_long(argc, argv, "ciuws:m:a:vh", long_options, &option_index)) != -1) {
 		switch (opt) {
 			case 0:
 				/* If this option set a flag, do nothing else now. */
 				if (long_options[option_index].flag != 0)
 					break;
-
-				/* if we one of the mac addresses are added, copy it*/
-				if (strncmp(long_options[option_index].name, "mac", 3) == 0) {
-					uint8_t i = (uint8_t) strtol(&long_options[option_index].name[3], NULL, 10);
-					if (i > 0 && i <= NXID_MAC_PORTS) {
-						//mac1-6 will be internal stored as mac0-5
-						strncpy(macs[i - 1], optarg, 19);
-						//bit 0-6 is used
-						max_mac |= (1 << (i-1));
-					}
-				}
-				fprintf (stdout, "option %s", long_options[option_index].name);
+				printf ("option %s", long_options[option_index].name);
 				if (optarg)
-					fprintf (stdout, " with arg %s", optarg);
-				fprintf (stdout, "\n");
-				break;
-
-			case 1:
-				hw_mac = 1;
+					printf (" with arg %s", optarg);
+				printf ("\n");
 				break;
 
 			case 'h':
@@ -133,6 +109,24 @@ int main(int argc, char **argv) {
 				strncpy(sn, optarg, 10);
 				break;
 
+			case 'm':
+				if (optarg) {
+					mac = atoi(optarg);
+					fprintf (stdout, "updating mac %d", mac);
+				}
+				break;
+
+			case 'a':
+				if (mac > 0 && mac <= NXID_MAC_PORTS) {
+					strncpy(macs[mac - 1], optarg, 19);
+					//bit 0-6 is used
+					max_mac |= (1 << (mac-1));
+					if (optarg)
+						fprintf (stdout, " with address %s", optarg);
+					fprintf (stdout, "\n");
+				}
+				break;
+
 			case 'v':
 				verbose++;
 				break;
@@ -157,7 +151,7 @@ int main(int argc, char **argv) {
 		if (update || check) {
 			exitcode = read_eeprom(&eeprom, eeprom_path);
 		} else {
-			exitcode = init_eeprom(&eeprom, eeprom_path, hw_mac);
+			exitcode = init_eeprom(&eeprom, eeprom_path, mac);
 		}
 	}
 
