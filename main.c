@@ -199,7 +199,7 @@ int main(int argc, char **argv) {
 	}
 
 	// write eeprom content to file
-	if (exitcode == EXIT_SUCCESS && write) {
+	if (exitcode == EXIT_SUCCESS && (update || write)) {
 		exitcode = write_eeprom(&eeprom, eeprom_path);
 	}
 
