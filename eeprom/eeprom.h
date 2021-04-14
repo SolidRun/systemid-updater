@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 
-#define NXID_MAC_PORTS 18
+#define NXID_MAC_PORTS 30
 
 typedef struct __attribute__ ((__packed__)) {
 	uint8_t YY;
@@ -31,7 +31,7 @@ typedef struct __attribute__ ((__packed__)) {
 	unsigned char res_1[21]; // 2B-3F: reserved
 	unsigned char macsize; // 40 : number of valid MAC addresses
 	unsigned char macflags; // 41 : MAC table flags
-	unsigned char mac[30][6]; // 42-F5: MAC addresses, array of 6-byte
+	unsigned char mac[NXID_MAC_PORTS][6]; // 42-F5: MAC addresses, array of 6-byte
 	unsigned char res_u[6]; // F6-FB: reserved
 	unsigned int crc32; // FC-FF: crc-32 checksum
 } systemid_t;
