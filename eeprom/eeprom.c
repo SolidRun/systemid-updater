@@ -151,7 +151,13 @@ void check_eeprom(systemid_t *e) {
 	fprintf(stdout, "version: %X\n", e->version[3]);
 	fprintf(stdout, "mac flags: %02X\n", e->macflags);
 	for (uint8_t i = 0; i < NXID_MAC_PORTS && i < e->macsize; i++) {
-		fprintf(stdout, "mac%d: %02X:%02X:%02X:%02X:%02X:%02X\n", i+1, e->mac[i][0],e->mac[i][1],e->mac[i][2],e->mac[i][3],e->mac[i][4],e->mac[i][5]);
+		if ( (e->mac[i][0] != 0) &&
+		     (e->mac[i][1] != 0) &&
+		     (e->mac[i][2] != 0) &&
+		     (e->mac[i][3] != 0) &&
+		     (e->mac[i][4] != 0) &&
+		     (e->mac[i][5] != 0))
+			fprintf(stdout, "mac%d: %02X:%02X:%02X:%02X:%02X:%02X\n", i+1, e->mac[i][0],e->mac[i][1],e->mac[i][2],e->mac[i][3],e->mac[i][4],e->mac[i][5]);
 	}
 	fprintf(stdout, "CRC: %08X\n", ntohl(e->crc32));
 }
