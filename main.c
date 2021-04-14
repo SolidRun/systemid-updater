@@ -149,12 +149,12 @@ int main(int argc, char **argv) {
 	}
 
 	// setup structure from given eeprom or from scratch
-	if ((init && update) || (!init && !update)) {
-		fprintf(stderr, "please specify 'update' or 'init'\n");
+	if ((init && update) || (!init && !update) && (!check)) {
+		fprintf(stderr, "please specify 'update' or 'init' or 'check'\n");
 		print_usage(basename(argv[0]));
 		exit(EXIT_FAILURE);
 	} else {
-		if (update) {
+		if (update || check) {
 			exitcode = read_eeprom(&eeprom, eeprom_path);
 		} else {
 			exitcode = init_eeprom(&eeprom, eeprom_path, hw_mac);
@@ -162,8 +162,9 @@ int main(int argc, char **argv) {
 	}
 
 	// dump eeprom content
-	if (exitcode==EXIT_SUCCESS && check && verbose) {
-		print_eeprom(&eeprom);
+	if (exitcode==EXIT_SUCCESS && check) {
+		if (verbose)
+			print_eeprom(&eeprom);
 		check_eeprom(&eeprom);
 	}
 
@@ -184,12 +185,16 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	update_crc(&eeprom);
+	if (exitcode==EXIT_SUCCESS && (update || write)) {
+		update_crc(&eeprom);
+	}
+
 	check_crc(&eeprom);
 
 	// dump eeprom content
-	if (exitcode==EXIT_SUCCESS && check) {
-		print_eeprom(&eeprom);
+	if (exitcode==EXIT_SUCCESS && check && (update || write)) {
+		if (verbose)
+			print_eeprom(&eeprom);
 		check_eeprom(&eeprom);
 	}
 
