@@ -2,7 +2,7 @@
 read and write SystemID eeprom via kernel sysfs for the LX2160a-CEX7 based boards
 
 ## Requirements
-This utility can be used standalone to create a firmware file or directly on the LX2160A based system. To use this utility directly on the device in Linux you will need to be running firmware at git hash #47f178541 or later.
+This utility can be used standalone to create a firmware file or directly on the LX2160A based system. To use this utility directly on the device in Linux you will need to be running firmware at `git hash #47f178541` or later.
 
 ## Building
 To build the software it is quite simple
