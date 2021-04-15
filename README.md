@@ -64,7 +64,7 @@ an address can be removed by setting the index address to all `00`'s
 
 ## Reference
 
-The sys eeprom driver in edk2 does not need all **18 possible MACs** filled allocated if you know they are not going to be used.  I have therefore modified this project to allow only certain mac's to have addresses assigned.  If you are changing your serdes networking configuration to be different than the default on then you should reference **section 26.1.4 SerDes** options in the **Qoriq LX2160a Reference Manual** to determine the **MAC id** that will need an address assigned to it in your configuration.
+The sys eeprom driver in edk2 does not need all **18 possible MACs** filled allocated if you know they are not going to be used.  I have therefore modified this project to allow only certain MACs to have addresses assigned.  If you are changing your serdes networking configuration to be different than the default on then you should reference **section 26.1.4 SerDes** options in the **Qoriq LX2160a Reference Manual** to determine the **MAC id** that will need an address assigned to it in your configuration.
 
 The default MACs for a HoneyComb system are
 
