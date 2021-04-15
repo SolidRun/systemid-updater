@@ -23,7 +23,7 @@ You can then initialize a new NXID eeprom structure on the device using the `-i`
 
 `./systemID_updater -iw`
 
-you can then use the check command to see the entire and verbose to actually see the structure on the eeprom
+You can then use the check command to see the entire and verbose to actually see the structure on the eeprom
 
 ```
 ./systemID_updater -cv
